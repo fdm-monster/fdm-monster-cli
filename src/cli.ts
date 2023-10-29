@@ -12,6 +12,8 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import * as process from "process";
 import { valid } from "semver";
+import { detectServiceInstallerRequired, getServiceFolder, getWorkspaceFolder } from "@/utils";
+import { fetchPackageVersions, getInstalledVersionSafe, getTagOrLatest } from "@/workspace";
 
 const cliCmd = "fdmm";
 const packageName = "@fdm-monster/server";
@@ -46,7 +48,7 @@ yargs(hideBin(process.argv))
     () => {},
     async (opts) => {
       const workspaceFolder = getWorkspaceFolder(opts.cwd);
-      const tag = getTagOrLatest(workspaceFolder);
+      const tag = getTagOrLatest(workspaceFolder, packageName, opts.tag);
       const packageSpecifier = `${packageName}@${tag}`;
       console.log(`Installing "${packageSpecifier}"`);
       runPackageInstall(workspaceFolder, packageSpecifier, !!opts.npm);
@@ -61,7 +63,7 @@ yargs(hideBin(process.argv))
     () => {},
     async (opts) => {
       const workspaceFolder = getWorkspaceFolder(opts.cwd);
-      const upgradedTag = getTagOrLatest(workspaceFolder, opts.tag, !!opts.npm);
+      const upgradedTag = getTagOrLatest(workspaceFolder, packageName, opts.tag, !!opts.npm);
       await upgradeInstallation(opts.cwd, workspaceFolder, packageName, upgradedTag, !!opts.npm);
       console.log("Service update complete");
     }
@@ -246,55 +248,6 @@ async function removeService(cwd: string, workspace: string, tolerateMissing: bo
   });
 }
 
-function getWorkspaceFolder(cwd: string) {
-  return join(cwd, "workspace");
-}
-
-function getServiceFolder(cwd: string, silent: boolean = true) {
-  const { platformOs, serviceInstaller } = detectServiceInstallerRequired(silent);
-  return join(cwd, "platforms", platformOs);
-}
-
-function detectServiceInstallerRequired(silent: boolean = true) {
-  if (!silent) {
-    checkArch();
-  }
-
-  let serviceInstaller = "node-linux";
-  const platformOs = platform();
-  switch (platformOs) {
-    case "darwin":
-      serviceInstaller = "node-mac";
-      break;
-    case "win32":
-      serviceInstaller = "node-windows";
-      break;
-    case "linux":
-      serviceInstaller = "node-linux";
-      break;
-    default:
-      console.warn(
-        `The platform ${platformOs} is not supported, the service package ${serviceInstaller}. Please proceed with caution.`
-      );
-  }
-  if (!silent) {
-    console.debug(`Detected platform ${platformOs} and chose installer [${serviceInstaller}].`);
-  }
-  return {
-    platformOs,
-    serviceInstaller,
-  };
-}
-
-function checkArch() {
-  const architecture = arch();
-  if (!["arm64", "x64"].includes(architecture)) {
-    console.warn(
-      `FDM Monster is installed on architecture ${architecture}. This seems unsupported and you are therefore operating at your own risk.`
-    );
-  }
-}
-
 function runInstall(path: string, useNpmInstead: boolean = false) {
   // Installs package.json packages
   execSync(useNpmInstead ? "yarn install" : "npm i", {
@@ -306,66 +259,4 @@ function runPackageInstall(path: string, packageSpecifier: string, useNpmInstead
   execSync(useNpmInstead ? `npm i ${packageSpecifier}` : `yarn add ${packageSpecifier}`, {
     cwd: path,
   });
-}
-
-function getTagOrLatest(workspace: string, tag?: string, useNpmInstead: boolean = false) {
-  const { versions, latest } = fetchPackageVersions(workspace, packageName, useNpmInstead);
-
-  if (!tag) {
-    if (!latest) {
-      console.error("No tag version was specified, but latest version of package could not be determined. Aborting ");
-      process.exit(50);
-    }
-    return latest;
-  }
-
-  const isValid = valid(tag);
-  if (!isValid) {
-    console.error(`The version tag ${tag} is not valid. Please specify a correct tag for upgrading this package`);
-    process.exit(51);
-  }
-
-  if (!versions.includes(tag)) {
-    console.error(
-      `The version tag ${tag} was not found among available version. Please specify a correct tag for upgrading this package, or try to clean the NPM or yarn cache`
-    );
-    process.exit(52);
-  }
-
-  return tag;
-}
-
-function getInstalledVersionSafe(path: string, packageName: string) {
-  try {
-    const packageJson = require(join(path, "node_modules", packageName, "package.json"));
-    return {
-      version: packageJson.version,
-      installed: true,
-    };
-  } catch (e) {
-    return {
-      version: null,
-      installed: false,
-    };
-  }
-}
-
-function fetchPackageVersions(workspace: string, packageName: string, useNpmInstead: boolean = false) {
-  console.log(workspace, packageName, useNpmInstead);
-  const cmdString = useNpmInstead ? `npm view --json ${packageName}` : `yarn info ${packageName} --json`;
-  const stdout = execSync(cmdString, {
-    cwd: workspace,
-  });
-  const response = JSON.parse(stdout.toString());
-  if (useNpmInstead) {
-    return {
-      versions: response.versions,
-      latest: response["dist-tags"]?.latest,
-    };
-  } else {
-    return {
-      versions: response.data.versions,
-      latest: response.data["dist-tags"]?.latest,
-    };
-  }
 }

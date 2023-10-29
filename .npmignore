@@ -17,7 +17,6 @@ npm-debug.log
 
 # Repo related
 .all-contributorsrc
-.dockerignore
 .editorconfig
 .eslintignore
 .eslintrc.js
@@ -26,18 +25,11 @@ npm-debug.log
 .whitesource
 renovate.json
 jest.config.js
-docker-compose.yml
-GitReleaseManager.yaml
 
 # Custom
 *.ps1
 coverage
-docker
-docs
 src
-fdm-monster
-installations
-media
 src/**/*
 test/**/*
 test
@@ -49,10 +41,10 @@ test
 **/*.zip
 
 !dist/**/*
+!platforms
+!workspace
 !*.md
-!.env.template
 !.swcrc
-!migrate-mongo-config.js
 !package.json
 !yarn.lock
 !tsconfig.json

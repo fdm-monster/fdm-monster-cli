@@ -1,0 +1,95 @@
+name: NodeJS Release
+on:
+  push:
+    branches:
+      - 'develop'
+      - 'main'
+jobs:
+  checkversion:
+    runs-on: ubuntu-latest
+    outputs:
+      foundCliVersion: ${{ steps.init.outputs.foundCliVersion }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - name: get-cli-version
+        # https://gist.github.com/DarrenN/8c6a5b969481725a4413?permalink_comment_id=3863317#gistcomment-3863317
+        run: |
+          echo "CLI_VERSION=$(npm pkg get version | sed 's/"//g')" >> $GITHUB_ENV
+      - uses: mukunku/tag-exists-action@v1.4.0
+        id: checkTag
+        with:
+          tag: ${{ env.CLI_VERSION }}
+      - run: echo ${{ steps.checkTag.outputs.exists }}
+      - name: Environment variables to output
+        id: init
+        run: |
+          echo "foundCliVersion=${{ steps.checkTag.outputs.exists }}" >> $GITHUB_OUTPUT
+
+  release:
+    needs: checkversion
+    runs-on: ubuntu-latest
+    if: needs.checkversion.outputs.foundCliVersion == 'false'
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+
+      # https://stackoverflow.com/questions/57968497/how-do-i-set-an-env-var-with-a-bash-expression-in-github-actions
+      - name: get-cli-version
+        # https://gist.github.com/DarrenN/8c6a5b969481725a4413?permalink_comment_id=3863317#gistcomment-3863317
+        run: |
+          echo "CLI_VERSION=$(npm pkg get version | sed 's/"//g')" >> $GITHUB_ENV
+
+      - name: set-tag
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            RELEASE_TAG="${{ env.CLI_VERSION }}"
+          else
+            RELEASE_TAG="${{ env.CLI_VERSION }}-${{ github.run_number }}"
+          fi
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+
+      - name: print-tag
+        run: |
+          echo ${{ env.RELEASE_TAG }}
+
+      # Build dist folder
+      - run: yarn install --immutable --immutable-cache --check-cache
+      - run: yarn build
+
+      - name: Create release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: ${{ github.ref_name != 'main' }}
+          prerelease: ${{ contains(env.CLI_VERSION, 'rc') || contains(env.CLI_VERSION, 'unstable') }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          release_name: ${{ env.RELEASE_TAG }} FDM Monster CLI
+          body: "Release notes not added" # ${{ steps.build_changelog.outputs.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: action-zip
+        uses: montudor/action-zip@v1.0.0
+        with:
+          args: | 
+            zip -qq -r dist-cli-${{ env.RELEASE_TAG }}.zip dist platforms workspace package.json yarn.lock tsconfig.json README.md LICENSE CODE_OF_CONDUCT.md CONTRIBUTING.md SECURITY.md .swcrc            
+
+      - name: Upload CLI bundle zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist-cli-${{ env.RELEASE_TAG }}.zip
+          asset_name: dist-cli-${{ env.RELEASE_TAG }}.zip
+          asset_content_type: application/zip
+
+      # Publish to NPM
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          dry-run: ${{ github.ref_name != 'main' }}
+          token: ${{ secrets.NPM_TOKEN }}
+          access: public
+          package: package.json
