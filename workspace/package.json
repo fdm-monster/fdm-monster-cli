@@ -1,0 +1,13 @@
+{
+  "name": "@fdm-monster/workspace",
+  "description": "A placeholder workspace to nest any @fdm-monster package installations in",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fdm-monster/fdm-monster"
+  },
+  "author": "David Zwart",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+  }
+}

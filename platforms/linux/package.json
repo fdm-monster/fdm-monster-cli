@@ -1,0 +1,9 @@
+{
+  "name": "fdm-monster-cli-linux",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "node-linux": "0.1.12"
+  }
+}
