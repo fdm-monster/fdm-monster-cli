@@ -1,0 +1,51 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+jobs:
+  nodejs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn run build
+      - run: yarn run test:cov
+        env:
+          NODE_OPTIONS: '--max_old_space_size=4096'
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          dry_run: false
+
+      # https://stackoverflow.com/questions/57968497/how-do-i-set-an-env-var-with-a-bash-expression-in-github-actions
+      - name: get-server-version
+        # https://gist.github.com/DarrenN/8c6a5b969481725a4413?permalink_comment_id=3863317#gistcomment-3863317
+        run: |
+          echo "SERVER_VERSION=$(npm pkg get version | sed 's/"//g')" >> $GITHUB_ENV
+
+      - name: set-tag
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            RELEASE_TAG="${{ env.SERVER_VERSION }}"
+          else
+            RELEASE_TAG="${{ env.SERVER_VERSION }}-${{ github.run_number }}"
+          fi
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+
+      - name: print-tag
+        run: |
+          echo ${{ env.RELEASE_TAG }}
+
+      # Publish to NPM
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          dry-run: true
+          token: ${{ secrets.NPM_TOKEN }}
+          package: package.json
