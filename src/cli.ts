@@ -256,7 +256,7 @@ async function removeService(cwd: string, workspace: string, tolerateMissing: bo
 
 function runInstall(path: string, useNpmInstead: boolean = false) {
   // Installs package.json packages
-  execSync(useNpmInstead ? "yarn install" : "npm i", {
+  execSync(useNpmInstead ? "npm i" : "yarn install", {
     cwd: path,
   });
 }
