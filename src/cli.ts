@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Created by D. J. Zwart
  * Description: Installs the Windows, macOS or Linux Service for FDM Monster
@@ -109,7 +111,7 @@ yargs(hideBin(process.argv))
   .strict()
   .help("help")
   .alias("h", "help")
-  .version("version", `FDM Monster CLI:\t${cliVersion}`) // the version string.
+  .version("version", cliVersion) // the version string.
   .alias("version", "v")
   .epilog("For more information visit https://fdm-monster.net\nCopyright 2023 D. J. Zwart - AGPLv3 License").argv;
 
