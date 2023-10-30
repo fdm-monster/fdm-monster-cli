@@ -1,6 +1,10 @@
 import { join } from "path";
 import { arch, platform } from "os";
 
+export function serviceExists(service: { exists: (() => boolean) | boolean }, serviceType: string) {
+  return serviceType == "node-linux" ? (service.exists as () => boolean)() : service.exists;
+}
+
 export function getWorkspaceFolder(cwd: string) {
   return join(cwd, "workspace");
 }
