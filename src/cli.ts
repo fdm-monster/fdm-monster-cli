@@ -17,7 +17,7 @@ import { fetchPackageVersions, getInstalledVersionSafe, getTagOrLatest } from "@
 
 const cliCmd = "fdmm";
 const packageName = "@fdm-monster/server";
-const cliVersion = "0.1.0-alpha";
+const cliVersion = require("../package.json").version;
 
 yargs(hideBin(process.argv))
   .usage(`Usage: $0 install`)
@@ -26,6 +26,7 @@ yargs(hideBin(process.argv))
   .option("npm", {
     alias: "n",
     boolean: true,
+    default: false,
     description: "Fall back to npm instead of yarn",
   })
   .option("cwd", {
@@ -48,7 +49,7 @@ yargs(hideBin(process.argv))
     () => {},
     async (opts) => {
       const workspaceFolder = getWorkspaceFolder(opts.cwd);
-      const tag = getTagOrLatest(workspaceFolder, packageName, opts.tag);
+      const tag = getTagOrLatest(workspaceFolder, packageName, opts.tag, !!opts.npm);
       const packageSpecifier = `${packageName}@${tag}`;
       console.log(`Installing "${packageSpecifier}"`);
       runPackageInstall(workspaceFolder, packageSpecifier, !!opts.npm);
@@ -113,6 +114,7 @@ yargs(hideBin(process.argv))
   .alias("h", "help")
   .version("version", cliVersion) // the version string.
   .alias("version", "v")
+  .wrap(yargs.terminalWidth())
   .epilog("For more information visit https://fdm-monster.net\nCopyright 2023 D. J. Zwart - AGPLv3 License").argv;
 
 function prepareServiceInstaller(cwd: string, installServiceInstallerIfMissing: boolean = true, useNpmInstead: boolean = false) {
