@@ -6,12 +6,10 @@
  */
 
 import { join } from "path";
-import { arch, platform } from "os";
 import { execSync } from "child_process";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import * as process from "process";
-import { valid } from "semver";
 import { detectServiceInstallerRequired, getServiceFolder, getWorkspaceFolder } from "@/utils";
 import { fetchPackageVersions, getInstalledVersionSafe, getTagOrLatest } from "@/workspace";
 
