@@ -51,9 +51,9 @@ yargs(hideBin(process.argv))
       const workspaceFolder = getWorkspaceFolder(opts.cwd);
       const tag = getTagOrLatest(workspaceFolder, packageName, opts.tag, !!opts.npm);
       const packageSpecifier = `${packageName}@${tag}`;
-      console.log(`Installing "${packageSpecifier}"`);
+      console.log(`Installing "${packageSpecifier}". Please wait...`);
       runPackageInstall(workspaceFolder, packageSpecifier, !!opts.npm);
-      console.log("Install preparation complete");
+      console.log("Install preparation complete!");
 
       await installService(opts.cwd, workspaceFolder, !!opts.npm);
     }
@@ -93,7 +93,7 @@ yargs(hideBin(process.argv))
     "Status of the FDM Monster service",
     () => {},
     (opts) => {
-      const service = getService(opts.cwd, getWorkspaceFolder(opts.cwd));
+      const service = getService(opts.cwd, getWorkspaceFolder(opts.cwd), false, !!opts.npm);
       console.log("Service exists: ", service.exists);
     }
   )
