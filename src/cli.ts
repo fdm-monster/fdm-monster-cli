@@ -12,7 +12,7 @@ import { execSync } from "child_process";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import * as process from "process";
-import { detectServiceInstallerRequired, getServiceFolder, getWorkspaceFolder } from "@/utils";
+import { detectServiceInstallerRequired, getServiceFolder, getWorkspaceFolder, serviceExists } from "@/utils";
 import { fetchPackageVersions, getInstalledVersionSafe, getTagOrLatest } from "@/workspace";
 
 const cliCmd = "fdmm";
@@ -93,8 +93,9 @@ yargs(hideBin(process.argv))
     "Status of the FDM Monster service",
     () => {},
     (opts) => {
-      const service = getService(opts.cwd, getWorkspaceFolder(opts.cwd), false, !!opts.npm);
-      console.log("Service exists: ", service.exists);
+      const { serviceInstaller } = detectServiceInstallerRequired(true);
+      const svc = getService(opts.cwd, getWorkspaceFolder(opts.cwd), false, !!opts.npm);
+      console.log("Service exists: ", serviceExists(svc, serviceInstaller));
     }
   )
   .command(
@@ -145,6 +146,7 @@ function getService(
   useNpmInstead: boolean = false
 ) {
   // Install and load the service installer
+  const { serviceInstaller } = detectServiceInstallerRequired(true);
   const { servicePath } = prepareServiceInstaller(cwd, installServiceInstallerIfMissing, useNpmInstead);
   const { Service } = require(servicePath);
 
@@ -173,7 +175,7 @@ function getService(
     console.log("This service was already alreadyuninstalled ");
   });
   svc.on("stop", function () {
-    console.log("Service stopped. Service exists?", svc.exists);
+    console.log("Service stopped. Service exists?", serviceExists(svc, serviceInstaller));
   });
 
   return svc;
@@ -205,17 +207,18 @@ async function updateService(cwd: string, workspace: string, useNpmInstead: bool
 
 async function installService(cwd: string, workspace: string, useNpmInstead: boolean) {
   return new Promise((resolve, reject) => {
+    const { serviceInstaller } = detectServiceInstallerRequired(true);
     const svc = getService(cwd, workspace, true, useNpmInstead);
     svc.on("error", function (error: any | void) {
       reject(error);
     });
     svc.on("install", function () {
-      console.log("Service installed. Service exists?", svc.exists);
+      console.log("Service installed. Service exists?", serviceExists(svc, serviceInstaller));
       svc.start();
-      console.log("Service started. Service exists?", svc.exists);
+      console.log("Service started. Service exists?", serviceExists(svc, serviceInstaller));
       resolve(true);
     });
-    if (svc.exists) {
+    if (serviceExists(svc, serviceInstaller)) {
       console.error("Service already exists, cant install twice. Should you maybe run the uninstall or update command instead?");
       process.exit(4);
     }
@@ -227,8 +230,9 @@ async function installService(cwd: string, workspace: string, useNpmInstead: boo
 async function removeService(cwd: string, workspace: string, tolerateMissing: boolean, useNpmInstead: boolean) {
   console.log(`Removing FDM Monster service.`);
   return new Promise((resolve, reject) => {
+    const { serviceInstaller } = detectServiceInstallerRequired(true);
     const svc = getService(cwd, workspace, true, useNpmInstead);
-    if (!svc.exists) {
+    if (!serviceExists(svc, serviceInstaller)) {
       if (tolerateMissing) {
         console.log("Service does not exist. Skipping removal step.");
         resolve(true);
@@ -241,7 +245,7 @@ async function removeService(cwd: string, workspace: string, tolerateMissing: bo
       reject(error);
     });
     svc.on("uninstall", function () {
-      console.log("Uninstall/remove complete. Service exists?", svc.exists);
+      console.log("Uninstall/remove complete. Service exists?", serviceExists(svc, serviceInstaller));
       resolve(true);
     });
 
