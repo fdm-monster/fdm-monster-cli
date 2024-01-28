@@ -6,7 +6,6 @@
   },
   "author": "David Zwart",
   "license": "AGPL-3.0-or-later",
-  "private": false,
   "version": "0.1.5-alpha",
   "bin": {
     "fdm-monster": "dist/cli.js",
@@ -89,5 +88,6 @@
       "docker/*"
     ],
     "delay": 100
-  }
+  },
+  "packageManager": "yarn@4.0.2"
 }
