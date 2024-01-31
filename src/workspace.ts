@@ -56,9 +56,24 @@ export function fetchPackageVersions(workspace: string, packageName: string, use
       latest: response["dist-tags"]?.latest,
     };
   } else {
-    return {
-      versions: response.data.versions,
-      latest: response.data["dist-tags"]?.latest,
-    };
+    if (response.data) {
+      return {
+        versions: response.data.versions,
+        latest: response.data["dist-tags"]?.latest,
+      };
+    } else {
+      if (response.children) {
+        const versions = response.children.map((c: any) => c["Version"]);
+        return {
+          versions: versions,
+          latest: versions?.length ? versions[0] : null,
+        };
+      } else {
+        return {
+          versions: response.data?.versions,
+          latest: response.data["dist-tags"]?.latest,
+        };
+      }
+    }
   }
 }
