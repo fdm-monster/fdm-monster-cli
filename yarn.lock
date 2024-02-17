@@ -1679,9 +1679,9 @@ dotenv@16.4.4:
   integrity sha512-XvPXc8XAQThSjAbY6cQ/9PcBXmFoWuw1sQ3b8HqUCR6ziGXjkTi//kB9SWa2UwqlgdAIuRqAa/9hVljzPehbYg==
 
 electron-to-chromium@^1.4.668:
-  version "1.4.672"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.672.tgz#f8ce803b43898b7e91dcfcf70d6fd656b11a645d"
-  integrity sha512-YYCy+goe3UqZqa3MOQCI5Mx/6HdBLzXL/mkbGCEWL3sP3Z1BP9zqAzeD3YEmLZlespYGFtyM8tRp5i2vfaUGCA==
+  version "1.4.673"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.673.tgz#1f077d9a095761804aec7ec6346c3f4b69b56534"
+  integrity sha512-zjqzx4N7xGdl5468G+vcgzDhaHkaYgVcf9MqgexcTqsl2UHSCmOj/Bi3HAprg4BZCpC7HyD8a6nZl6QAZf72gw==
 
 emittery@^0.13.1:
   version "0.13.1"
@@ -3625,9 +3625,9 @@ pirates@^4.0.4:
   integrity sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==
 
 piscina@^4.3.0:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/piscina/-/piscina-4.3.1.tgz#eaa59461caa27f07c637e667b14c36a0bd7e7daf"
-  integrity sha512-MBj0QYm3hJQ/C/wIXTN1OCYC8uQ4BBJ4LVele2P4ZwVQAH04vkk8E1SpDbuemLAL1dZorbuOob9rYqJeWCcCRg==
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/piscina/-/piscina-4.3.2.tgz#e390da6a7127a9f3a98047c8952526ae9a297c9f"
+  integrity sha512-aXPak3A1LgbfDFrsmgYhQS4J7ElHRFL7iUkUqaiLNDRE69YQSFGqIZiHaXOH4NyC6EdD+awZVeE7MG0zVm9L4Q==
   optionalDependencies:
     nice-napi "^1.0.2"
 
