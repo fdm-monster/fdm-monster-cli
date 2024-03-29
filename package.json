@@ -41,7 +41,7 @@
   "dependencies": {
     "cross-env": "7.0.3",
     "dotenv": "16.4.5",
-    "reflect-metadata": "0.2.1",
+    "reflect-metadata": "0.2.2",
     "semver": "7.6.0",
     "yargs": "17.7.2"
   },
